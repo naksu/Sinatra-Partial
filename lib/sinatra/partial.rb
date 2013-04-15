@@ -54,7 +54,7 @@ module Sinatra
       #   partial(:"meta/news", :collection => [<News>])
       #     # => renders views/meta/_news.haml once per item in :collection,
       #           with the local variable `news` being the current item in the iteration
-      def partial(partial_name, options={})
+      def partial(partial_name, options={}, &block)
         options.merge! :layout => false
         partial_location = partial_name.to_s
         engine = options.fetch(:template_engine, settings.partial_template_engine)
@@ -69,12 +69,12 @@ module Sinatra
   
           collection.inject([]) do |buffer, member|
             new_locals = {member_local => member}.merge(locals)
-            buffer << self.method(engine).call(template, options.merge(:locals => new_locals))
+            buffer << self.method(engine).call(template, options.merge(:locals => new_locals), &block)
           end.join("\n")
         else
           # TODO benchmark this and see if caching the method
           # speeds things up
-          self.method(engine).call(template, options)
+          self.method(engine).call(template, options, &block)
         end
       end
       
